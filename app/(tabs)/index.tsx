@@ -1,72 +1,100 @@
-import axios from 'axios';
-import React from 'react';
-import { View } from 'react-native';
-import WebView from 'react-native-webview';
-import {appConfig} from '../../app.config'
+import axios, { AxiosResponse } from "axios";
+import React from "react";
+import { WebView, WebViewNavigation } from "react-native-webview";
+import { appConfig } from "../../app.config";
+import { Text, View } from "react-native";
 
 const KAKAO_REST_API_KEY = appConfig.KAKAO_REST_API_KEY;
-const KAKAO_REDIRECT_URI = appConfig.KAKAO_REDIRECT_URI;
-const KAKAO_INJECTED_JAVASCRIPT = `window.ReactNativeWebView.postMessage('message from webView')`;
+const KAKAO_REDIRECT_URI = encodeURI(appConfig.KAKAO_REDIRECT_URI);
 
-export default function HomeScreen() {
+export default function KakaoLogin() {
+  const [accessToken, setAccessToken] = React.useState<string | null>(null);
+  const [userInfo, setUserInfo] = React.useState<any | null>(null);
 
-  function KakaoLoginWebView (data) {
-    const exp = "code=";
-    var condition = data.indexOf(exp);    
-    if (condition != -1) {
-      console.log(data);
-      var authorize_code = data.substring(condition + exp.length);
-      console.log(authorize_code);
-      requestToken(authorize_code);
+  const handleWebViewNavigationStateChange = (
+    newNavState: WebViewNavigation
+  ) => {
+    const { url } = newNavState;
+    if (!url) return;
+
+    if (url.includes("code=")) {
+      const code = url.split("code=")[1];
+      // console.log(`Kakao authorization code: ${code}`);
+      requestToken(code);
+    }
+  };
+  const requestToken = async (code: string) => {
+    try {
+      const response: AxiosResponse<{ access_token: string }> = await axios({
+        method: "post",
+        url: "https://kauth.kakao.com/oauth/token",
+        params: {
+          grant_type: "authorization_code",
+          client_id: KAKAO_REST_API_KEY,
+          redirect_uri: KAKAO_REDIRECT_URI,
+          code: code,
+        },
+      });
+      const { access_token } = response.data;
+      // console.log(`Kakao access token: ${access_token}`);
+      requestUserInfo(access_token);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+  interface KakaoProfile {
+    is_default_nickname: boolean;
+    nickname: string;
+    // TODO: 카카오계정(이메일) 정보를 추가 시 타입 정의
+  }
+  interface KakaoAccount {
+    profile: KakaoProfile;
+    profile_nickname_needs_agreement: boolean;
+  }
+  interface KakaoUserResponse {
+    connected_at: string;
+    id: number;
+    kakao_account: KakaoAccount;
+    properties: {
+      nickname: string;
     };
   }
-
-  const requestToken = async (authorize_code) => {
-    var AccessToken = "none";
-    axios ({
-      method: 'post',
-      url: 'https://kauth.kakao.com/oauth/token',
-      params: {
-        grant_type: 'authorization_code',
-        client_id: KAKAO_REST_API_KEY,
-        redirect_uri: KAKAO_REDIRECT_URI,
-        code: authorize_code,
-      },
-    }).then((response) => {
-      AccessToken = response.data.access_token;
-      console.log(AccessToken);
-      requestUserInfo(AccessToken);
-    }).catch(function (error) {
-      console.log('error', error);
-    })
+  const requestUserInfo = async (accessToken: string) => {
+    try {
+      const response: AxiosResponse<KakaoUserResponse> = await axios({
+        method: "GET",
+        url: "https://kapi.kakao.com/v2/user/me",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      console.log(response.data);
+      setAccessToken(accessToken);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.log("error", error);
+    }
   };
-  function requestUserInfo(AccessToken)  {
-    axios ({
-      method: 'GET',
-      url: 'https://kapi.kakao.com/v2/user/me',
-      headers: {
-        Authorization : `Bearer ${AccessToken}`
-      },
-    }).then((response) => {
-      console.log(response.data.kakao_account.profile.nickname);
-    }).catch(function (error) {
-      console.log('error', error);
-    })
-    return;
-  }
+
   return (
-    <View style={{flex :1 , justifyContent : 'center'}}>      
+    <View style={{ flex: 1, justifyContent: "center" }}>
+      {accessToken ? (
+        <View>
+          <Text>카카오 로그인 성공</Text>
+          <Text>토큰: {accessToken}</Text>
+          <Text>유저 정보 : {userInfo?.id} </Text>
+        </View>
+      ) : (
         <WebView
-          style={{ flex: 1 }}
-          originWhitelist={['*']}
-          scalesPageToFit={false}
           source={{
-            uri: `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_REST_API_KEY}&redirect_uri=${KAKAO_REDIRECT_URI}`
+            uri: `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_REST_API_KEY}&redirect_uri=${KAKAO_REDIRECT_URI}`,
           }}
-          injectedJavaScript={KAKAO_INJECTED_JAVASCRIPT}
-          javaScriptEnabled
-          onMessage={event => { KakaoLoginWebView(event.nativeEvent["url"]); }}
+          overScrollMode="never"
+          incognito={true}
+          javaScriptEnabled={true}
+          onNavigationStateChange={handleWebViewNavigationStateChange}
         />
+      )}
     </View>
-  )
+  );
 }

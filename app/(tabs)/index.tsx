@@ -155,7 +155,7 @@ export default function Map() {
     <GestureHandlerRootView>
       <MapView
         style={styles.map}
-        // provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_GOOGLE}
         initialRegion={INITIAL_REGION}
         showsUserLocation
         showsMyLocationButton

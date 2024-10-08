@@ -163,15 +163,13 @@ export default function Map() {
         onRegionChangeComplete={onRegionChange}
         maxZoomLevel={16}
         minZoomLevel={13}
-        mapPadding={{top : 50, bottom:90}}
-        >
+        mapPadding={{top: 50, bottom: 90}}>
         {markers.map((marker) => (
           <Marker
             key={marker.no}
             coordinate={marker}
             // image={require('../../assets/images/ic_location.png')}
-            pinColor="orange"
-            >
+            pinColor="orange">
             <Callout style={styles.marker}>
               <View style={styles.markerContainer}>
                 <Text style={{fontSize: 20}}>{marker.name}</Text>
@@ -198,10 +196,8 @@ export default function Map() {
           </Marker>
         ))}
       </MapView>
-      <BottomSheet snapPoints={['10%', '50%']} >
-        <Text style={{fontSize : width / 20, margin : 10}}>
-          show list
-        </Text>
+      <BottomSheet snapPoints={['10%', '50%']}>
+        <Text style={{fontSize: width / 20, margin: 10}}>show list</Text>
         {markers.map((marker) => (
           <Text key={marker.no}>{marker.name}</Text>
         ))}

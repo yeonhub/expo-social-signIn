@@ -19,7 +19,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.yeonhub.lotto2",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCPD29QDZce_fmBQwLC9BFpPMErK7trcK0"
+        }
+      },
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -27,10 +34,21 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-7073437242899115~8705191455"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "97ae65ab-2b0c-48aa-9804-1cba0ed0d8f7"
+      }
     }
   }
 }

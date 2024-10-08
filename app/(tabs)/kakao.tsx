@@ -1,8 +1,8 @@
-import axios, { AxiosResponse } from "axios";
-import React from "react";
-import { WebView, WebViewNavigation } from "react-native-webview";
-import { appConfig } from "../../app.config";
-import { Text, View } from "react-native";
+import axios, {AxiosResponse} from 'axios';
+import React from 'react';
+import {WebView, WebViewNavigation} from 'react-native-webview';
+import {appConfig} from '../../signConfig';
+import {Text, View} from 'react-native';
 
 const KAKAO_REST_API_KEY = appConfig.KAKAO_REST_API_KEY;
 const KAKAO_REDIRECT_URI = encodeURI(appConfig.KAKAO_REDIRECT_URI);
@@ -12,34 +12,34 @@ export default function KakaoLogin() {
   const [userInfo, setUserInfo] = React.useState<any | null>(null);
 
   const handleWebViewNavigationStateChange = (
-    newNavState: WebViewNavigation
+    newNavState: WebViewNavigation,
   ) => {
-    const { url } = newNavState;
+    const {url} = newNavState;
     if (!url) return;
 
-    if (url.includes("code=")) {
-      const code = url.split("code=")[1];
+    if (url.includes('code=')) {
+      const code = url.split('code=')[1];
       // console.log(`Kakao authorization code: ${code}`);
       requestToken(code);
     }
   };
   const requestToken = async (code: string) => {
     try {
-      const response: AxiosResponse<{ access_token: string }> = await axios({
-        method: "post",
-        url: "https://kauth.kakao.com/oauth/token",
+      const response: AxiosResponse<{access_token: string}> = await axios({
+        method: 'post',
+        url: 'https://kauth.kakao.com/oauth/token',
         params: {
-          grant_type: "authorization_code",
+          grant_type: 'authorization_code',
           client_id: KAKAO_REST_API_KEY,
           redirect_uri: KAKAO_REDIRECT_URI,
           code: code,
         },
       });
-      const { access_token } = response.data;
+      const {access_token} = response.data;
       // console.log(`Kakao access token: ${access_token}`);
       requestUserInfo(access_token);
     } catch (error) {
-      console.log("error", error);
+      console.log('error', error);
     }
   };
   interface KakaoProfile {
@@ -62,8 +62,8 @@ export default function KakaoLogin() {
   const requestUserInfo = async (accessToken: string) => {
     try {
       const response: AxiosResponse<KakaoUserResponse> = await axios({
-        method: "GET",
-        url: "https://kapi.kakao.com/v2/user/me",
+        method: 'GET',
+        url: 'https://kapi.kakao.com/v2/user/me',
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -72,12 +72,12 @@ export default function KakaoLogin() {
       setAccessToken(accessToken);
       setUserInfo(response.data);
     } catch (error) {
-      console.log("error", error);
+      console.log('error', error);
     }
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center" }}>
+    <View style={{flex: 1, justifyContent: 'center'}}>
       {accessToken ? (
         <View>
           <Text>카카오 로그인 성공</Text>

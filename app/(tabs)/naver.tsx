@@ -1,7 +1,7 @@
 import axios, {AxiosResponse} from 'axios';
 import React from 'react';
 import {WebView, WebViewNavigation} from 'react-native-webview';
-import {appConfig} from '../../app.config';
+import {appConfig} from '../../signConfig';
 import {Text, View} from 'react-native';
 
 const NAVER_CLIENT_ID = appConfig.NAVER_CLIENT_ID;

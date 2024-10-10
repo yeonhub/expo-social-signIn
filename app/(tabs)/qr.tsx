@@ -1,43 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, Button } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import React, {useState, useEffect} from 'react';
+import {Text, View, Button, StyleSheet} from 'react-native';
+import {CameraView, Camera} from 'expo-camera';
 
 export default function Qr() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [data, setData] = useState('');
 
   useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
+    const getCameraPermissions = async () => {
+      const {status} = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     };
 
-    getBarCodeScannerPermissions();
+    getCameraPermissions();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
-    setData(data);
-    console.log(data);
-    alert(`QR 코드 스캔 완료: ${data}`);
+  const handleBarcodeScanned = ({type, data}) => {
+    const lottoUrl = 'm.dhlottery.co.kr';
+    if (type === 'qr' && data.includes(lottoUrl)) {
+      setScanned(true);
+      console.log(type, data);
+      alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+    }
   };
 
   if (hasPermission === null) {
-    return <Text>카메라 권한 요청 중...</Text>;
+    return <Text>Requesting for camera permission</Text>;
   }
   if (hasPermission === false) {
-    return <Text>카메라 권한이 없습니다.</Text>;
+    return <Text>No access to camera</Text>;
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <BarCodeScanner
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={{ height: 400, width: 400 }}
+    <View style={styles.container}>
+      <CameraView
+        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+        barcodeScannerSettings={{
+          barcodeTypes: ['qr'],
+        }}
+        style={StyleSheet.absoluteFillObject}
       />
-      {scanned && <Button title="다시 스캔하기" onPress={() => setScanned(false)} />}
-      {data ? <Text>스캔된 데이터: {data}</Text> : <Text>QR 코드를 스캔하세요</Text>}
+      {scanned && (
+        <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
+      )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+});
